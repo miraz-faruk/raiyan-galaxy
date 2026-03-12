@@ -10,12 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tsparticles/react": "^3.0.0",
     "localforage": "^1.10.0",
     "match-sorter": "^8.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.1",
-    "react-tsparticles": "^2.12.2",
     "sort-by": "^1.2.0",
     "tsparticles": "^3.9.1"
   },

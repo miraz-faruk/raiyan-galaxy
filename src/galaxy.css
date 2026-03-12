@@ -1,0 +1,33 @@
+.stars, .stars2, .stars3 {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background-repeat: repeat;
+  animation: moveStars 100s linear infinite;
+}
+
+.stars {
+  background-image: radial-gradient(2px 2px white, transparent);
+  background-size: 50px 50px;
+}
+
+.stars2 {
+  background-image: radial-gradient(1.5px 1.5px #aaa, transparent);
+  background-size: 100px 100px;
+  animation-duration: 150s;
+}
+
+.stars3 {
+  background-image: radial-gradient(1px 1px #fff, transparent);
+  background-size: 150px 150px;
+  animation-duration: 200s;
+}
+
+@keyframes moveStars {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-1000px);
+  }
+}
