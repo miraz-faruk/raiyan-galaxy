@@ -1,33 +1,43 @@
-.stars, .stars2, .stars3 {
+/* Base star layers */
+.stars,
+.stars2,
+.stars3 {
   position: absolute;
+  top: -1000px;
+  left: 0;
   width: 200%;
   height: 200%;
   background-repeat: repeat;
-  animation: moveStars 100s linear infinite;
+  animation: moveStars linear infinite;
 }
 
+/* small stars */
 .stars {
   background-image: radial-gradient(2px 2px white, transparent);
   background-size: 50px 50px;
+  animation-duration: 60s;
 }
 
+/* medium stars */
 .stars2 {
-  background-image: radial-gradient(1.5px 1.5px #aaa, transparent);
+  background-image: radial-gradient(1.5px 1.5px #bbb, transparent);
   background-size: 100px 100px;
-  animation-duration: 150s;
+  animation-duration: 120s;
 }
 
+/* tiny stars */
 .stars3 {
   background-image: radial-gradient(1px 1px #fff, transparent);
   background-size: 150px 150px;
-  animation-duration: 200s;
+  animation-duration: 180s;
 }
 
+/* animation */
 @keyframes moveStars {
   from {
     transform: translateY(0);
   }
   to {
-    transform: translateY(-1000px);
+    transform: translateY(1000px);
   }
 }
