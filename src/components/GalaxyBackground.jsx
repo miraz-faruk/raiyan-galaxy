@@ -1,24 +1,26 @@
 import React, { useMemo } from 'react';
 
 const GalaxyBackground = () => {
-  // useMemo runs this once and "remembers" the stars
+  // We generate the stars ONCE using useMemo
   const stars = useMemo(() => {
-    return Array.from({ length: 60 }).map((_, i) => ({
+    return Array.from({ length: 80 }).map((_, i) => ({
       id: i,
       top: `${Math.random() * 100}%`,
       left: `${Math.random() * 100}%`,
-      size: `${Math.random() * 3}px`,
-      duration: `${2 + Math.random() * 4}s`,
-      delay: `${Math.random() * 5}s`,
-      opacity: 0.3 + Math.random() * 0.7,
+      size: Math.random() * 3 + 1 + "px",
+      // We use CSS variables to pass random values safely
+      duration: 3 + Math.random() * 4 + "s",
+      delay: Math.random() * 5 + "s",
+      opacity: 0.2 + Math.random() * 0.8,
     }));
   }, []);
 
   return (
     <div className="fixed inset-0 z-0 bg-black overflow-hidden">
-      {/* Deep Space Glows */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/10 via-black to-blue-900/10" />
-      
+      {/* Deep Space Background Color */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-slate-900 to-black opacity-80" />
+
+      {/* Star Field */}
       {stars.map((star) => (
         <div
           key={star.id}
@@ -31,13 +33,14 @@ const GalaxyBackground = () => {
             opacity: star.opacity,
             animationDuration: star.duration,
             animationDelay: star.delay,
+            boxShadow: `0 0 ${star.size} white`,
           }}
         />
       ))}
 
-      {/* Ambient Nebulas */}
-      <div className="absolute top-1/4 left-1/3 w-72 h-72 bg-blue-600/5 rounded-full blur-[120px]" />
-      <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-purple-600/5 rounded-full blur-[150px]" />
+      {/* Nebula Glows */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-900/20 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/20 rounded-full blur-[120px] animate-pulse" />
     </div>
   );
 };
