@@ -160,7 +160,7 @@ function App() {
           <div className="relative z-20 flex items-center justify-center h-full">
             {showGreeting ? (
               <h1 className="text-6xl lg:text-7xl font-bold tracking-widest animate-pulse text-center drop-shadow-[0_0_15px_rgba(59,130,246,0.8)] px-4 uppercase">
-                Hi Raian!!!
+                Hi Raiyan!!!
               </h1>
             ) : (
               <div className="flex flex-col sm:flex-row gap-16">
@@ -196,7 +196,7 @@ function App() {
                 </div>
 
                 <div className="h-48 overflow-y-auto mb-8 text-2xl font-light leading-relaxed text-red-50 border-l-2 border-red-600/20 pl-6">
-                  {response || "Ready for your command, Raian..."}
+                  {response || "Ready for your command, Raiyan..."}
                 </div>
 
                 <form onSubmit={handleAskAI} className="relative flex items-center gap-3">
