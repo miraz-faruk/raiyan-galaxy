@@ -1,56 +1,51 @@
 import { useState, useEffect } from 'react'
-import { Power } from 'lucide-react'
+import { Power, Mic, Send, X } from 'lucide-react'
 import './App.css'
 
 function App() {
   const [started, setStarted] = useState(false);
   const [showGreeting, setShowGreeting] = useState(true);
+  const [aiActive, setAiActive] = useState(false);
+  const [input, setInput] = useState("");
+  const [response, setResponse] = useState("");
+  const [isListening, setIsListening] = useState(false); // For Talking Tom
+  const [isAiListening, setIsAiListening] = useState(false); // For AI Voice Command
 
+  // Pre-load voices for the browser
   useEffect(() => {
-    // This function helps the browser "remember" to load the voice list
-    const loadVoices = () => {
-      window.speechSynthesis.getVoices();
-    };
-
+    const loadVoices = () => { window.speechSynthesis.getVoices(); };
     loadVoices();
-
-    // Chrome and Edge need this event listener to actually populate the list
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
   }, []);
 
-  const speakWelcome = () => {
+  // --- VOICE UTILITIES ---
+  const speakText = (text, isTom = false) => {
     const synth = window.speechSynthesis;
-    const message = new SpeechSynthesisUtterance(
-      "Hi Raian, welcome to the Raian's galaxy, and I'm your personal AI assistant."
-    );
-
+    const utterance = new SpeechSynthesisUtterance(text);
     const voices = synth.getVoices();
 
-    // Look for high-quality female voices
-    const femaleVoice = voices.find((v) =>
+    const femaleVoice = voices.find(v =>
       v.name.includes("Google US English") ||
       v.name.includes("Microsoft Zira") ||
-      v.name.includes("Samantha") ||
-      v.name.includes("Female")
+      v.name.includes("Samantha")
     );
 
-    if (femaleVoice) {
-      message.voice = femaleVoice;
-    }
+    if (femaleVoice) utterance.voice = femaleVoice;
 
-    message.pitch = 1.1;
-    message.rate = 0.95;
-    message.volume = 1;
+    // Tom is high pitched (1.8), AI is professional (1.1)
+    utterance.pitch = isTom ? 1.8 : 1.1;
+    utterance.rate = isTom ? 1.2 : 0.95;
 
-    synth.speak(message);
+    synth.speak(utterance);
   };
 
+  // --- START SEQUENCE ---
   const handleStart = () => {
     setStarted(true);
     setTimeout(() => {
-      speakWelcome();
+      speakText("Hi Raiyan, welcome to the Raiyan's galaxy, and I'm your personal AI assistant.");
     }, 2000);
 
     setTimeout(() => {
@@ -58,54 +53,92 @@ function App() {
     }, 7000);
   };
 
-  // 1. Add a new state to track if Tom is listening
-  const [isListening, setIsListening] = useState(false);
+  // --- RED BUTTON: STABLE AI LOGIC ---
+  const handleAskAI = (e) => {
+    if (e) e.preventDefault();
+    if (!input) return;
 
+    const query = input.toLowerCase();
+    let reply = "";
+
+    // Local Logic (Ensures it works everywhere in Bangladesh)
+    if (query.includes("hello") || query.includes("hi")) {
+      reply = "Hello Raiyan! I am your Galaxy Assistant. How can I help you today?";
+    } 
+    else if (query.includes("time")) {
+      reply = `The current time in the galaxy is ${new Date().toLocaleTimeString()}.`;
+    }
+    else if (query.includes("day") || query.includes("date")) {
+      const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      reply = `Today is ${today}.`;
+    }
+    else if (query.includes("who made you") || query.includes("creator")) {
+      reply = "I was created by your amazing uncle, Miraz, to be your personal space guide!";
+    }
+    else if (query.includes("joke")) {
+      const jokes = [
+        "How do you organize a space party? You planet!",
+        "What is an astronaut's favorite key on the keyboard? The space bar!",
+        "Why did the sun go to school? To get brighter!"
+      ];
+      reply = jokes[Math.floor(Math.random() * jokes.length)];
+    }
+    else {
+      reply = `I am opening the Galaxy Portal to find the answer for: ${input}`;
+      setTimeout(() => {
+        window.open(`https://www.google.com/search?q=${input}`, "_blank");
+      }, 2000);
+    }
+
+    setResponse(reply);
+    speakText(reply);
+    setInput("");
+  };
+
+  // --- AI VOICE INPUT (Red Button Mic) ---
+  const startAiVoiceCommand = () => {
+    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+    if (!SpeechRecognition) return alert("Please use Chrome browser.");
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => setIsAiListening(true);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setIsAiListening(false);
+      setInput(transcript);
+      
+      // Submit the text to AI after 1 second
+      setTimeout(() => {
+        document.getElementById("ai-submit-btn")?.click();
+      }, 500);
+    };
+    recognition.onerror = () => setIsAiListening(false);
+    recognition.start();
+  };
+
+  // --- GREEN BUTTON: TALKING TOM ---
   const startTalkingTom = () => {
-    // Check if browser supports speech recognition
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Voice recognition not supported in this browser. Please use Chrome.");
+      alert("Voice recognition not supported. Please use Chrome.");
       return;
     }
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
 
-    recognition.onstart = () => {
-      setIsListening(true);
-    };
-
+    recognition.onstart = () => setIsListening(true);
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setIsListening(false);
-
-      // Now, repeat it back in Tom's voice
-      repeatAsTom(transcript);
+      speakText(transcript, true); 
     };
-
-    recognition.onerror = () => {
-      setIsListening(false);
-    };
+    recognition.onerror = () => setIsListening(false);
 
     recognition.start();
-  };
-
-  const repeatAsTom = (text) => {
-    const synth = window.speechSynthesis;
-    const utterance = new SpeechSynthesisUtterance(text);
-
-    // High pitch makes it sound like Talking Tom!
-    utterance.pitch = 1.8;
-    utterance.rate = 1.2;
-
-    // Use the same female voice logic for a clear high-pitched sound
-    const voices = synth.getVoices();
-    const tomVoice = voices.find(v => v.name.includes("Google") || v.name.includes("Samantha"));
-    if (tomVoice) utterance.voice = tomVoice;
-
-    synth.speak(utterance);
   };
 
   return (
@@ -126,41 +159,58 @@ function App() {
 
           <div className="relative z-20 flex items-center justify-center h-full">
             {showGreeting ? (
-              <h1 className="text-7xl font-bold tracking-widest animate-pulse drop-shadow-[0_0_15px_rgba(59,130,246,0.8)]">
+              <h1 className="text-6xl lg:text-7xl font-bold tracking-widest animate-pulse text-center drop-shadow-[0_0_15px_rgba(59,130,246,0.8)] px-4 uppercase">
                 Hi Raiyan!!!
               </h1>
             ) : (
               <div className="flex flex-col sm:flex-row gap-16">
-
-                {/* RED POWER BUTTON */}
+                {/* RED BUTTON - AI ASSISTANT */}
                 <div className="flex flex-col items-center gap-4">
-                  <button className="w-28 h-28 bg-red-600 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(220,38,38,0.6)] hover:shadow-[0_0_60px_rgba(220,38,38,1)] transition-all hover:scale-110 active:scale-95 border-4 border-red-400">
+                  <button onClick={() => setAiActive(true)} className="w-28 h-28 bg-red-600 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(220,38,38,0.6)] hover:shadow-[0_0_60px_rgba(220,38,38,1)] transition-all hover:scale-110 active:scale-95 border-4 border-red-400">
                     <Power size={48} color="white" strokeWidth={3} />
                   </button>
                   <span className="text-red-500 font-black tracking-widest uppercase text-xl">AI Assistant</span>
                 </div>
 
-                {/* GREEN POWER BUTTON */}
-                {/* GREEN POWER BUTTON */}
+                {/* GREEN BUTTON - TALKING TOM */}
                 <div className="flex flex-col items-center gap-4">
-                  <button
-                    onClick={startTalkingTom}
-                    className={`w-28 h-28 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 border-4 
-      ${isListening
-                        ? 'bg-yellow-400 animate-ping border-yellow-200 shadow-[0_0_60px_rgba(250,204,21,1)]'
-                        : 'bg-green-600 border-green-400 shadow-[0_0_40px_rgba(22,163,74,0.6)] hover:shadow-[0_0_60px_rgba(22,163,74,1)]'
-                      }`}
-                  >
+                  <button onClick={startTalkingTom} className={`w-28 h-28 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 border-4 ${isListening ? 'bg-yellow-400 animate-ping border-yellow-200 shadow-[0_0_60px_rgba(250,204,21,1)]' : 'bg-green-600 border-green-400 shadow-[0_0_40px_rgba(22,163,74,0.6)] hover:shadow-[0_0_60px_rgba(22,163,74,1)]'}`}>
                     <Power size={48} color="white" strokeWidth={3} />
                   </button>
-                  <span className="text-green-500 font-black tracking-widest uppercase text-xl">
-                    {isListening ? "Listening..." : "Talking Tom"}
-                  </span>
+                  <span className="text-green-500 font-black tracking-widest uppercase text-xl">{isListening ? "Listening..." : "Talking Tom"}</span>
                 </div>
-
               </div>
             )}
           </div>
+
+          {/* AI MODAL INTERFACE */}
+          {aiActive && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+              <div className="w-full max-w-2xl p-8 bg-black/80 border border-red-500/30 rounded-[2rem] shadow-2xl animate-in zoom-in duration-300">
+                <div className="flex justify-between items-center mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-red-600 rounded-full animate-ping" />
+                    <h2 className="text-2xl font-black text-red-500 tracking-tighter uppercase">AI Interface</h2>
+                  </div>
+                  <button onClick={() => setAiActive(false)} className="text-white/40 hover:text-white transition-colors"><X size={32} /></button>
+                </div>
+
+                <div className="h-48 overflow-y-auto mb-8 text-2xl font-light leading-relaxed text-red-50 border-l-2 border-red-600/20 pl-6">
+                  {response || "Ready for your command, Raiyan..."}
+                </div>
+
+                <form onSubmit={handleAskAI} className="relative flex items-center gap-3">
+                  <div className="relative flex-1">
+                    <input autoFocus type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type or use the mic..." className="w-full bg-red-950/20 border border-red-500/20 rounded-2xl py-5 px-6 pr-16 focus:outline-none focus:border-red-500 transition-all text-white text-lg" />
+                    <button type="button" onClick={startAiVoiceCommand} className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isAiListening ? 'bg-red-600 animate-pulse' : 'bg-red-900/40 hover:bg-red-600'}`}>
+                      <Mic size={24} color="white" />
+                    </button>
+                  </div>
+                  <button id="ai-submit-btn" type="submit" className="px-6 py-5 bg-red-600 text-white font-bold rounded-2xl hover:bg-red-500 shadow-lg active:scale-95 transition-all"><Send size={24} /></button>
+                </form>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
