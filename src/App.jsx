@@ -45,7 +45,8 @@ function App() {
   const handleStart = () => {
     setStarted(true);
     setTimeout(() => {
-      speakText("Hi Raian, welcome to the Raian's galaxy, and I'm your personal AI assistant.");
+      // We use "Rai-yaan" so the mobile voice says it correctly
+      speakText("Hi Rai-yaan, welcome to the Rai-yaan's galaxy, and I'm your personal AI assistant.");
     }, 2000);
 
     setTimeout(() => {
@@ -64,7 +65,7 @@ function App() {
     // Local Logic (Ensures it works everywhere in Bangladesh)
     if (query.includes("hello") || query.includes("hi")) {
       reply = "Hello Raian! I am your Galaxy Assistant. How can I help you today?";
-    } 
+    }
     else if (query.includes("time")) {
       reply = `The current time in the galaxy is ${new Date().toLocaleTimeString()}.`;
     }
@@ -108,7 +109,7 @@ function App() {
       const transcript = event.results[0][0].transcript;
       setIsAiListening(false);
       setInput(transcript);
-      
+
       // Submit the text to AI after 1 second
       setTimeout(() => {
         document.getElementById("ai-submit-btn")?.click();
@@ -134,7 +135,7 @@ function App() {
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setIsListening(false);
-      speakText(transcript, true); 
+      speakText(transcript, true);
     };
     recognition.onerror = () => setIsListening(false);
 
